@@ -5,8 +5,16 @@ import type {
   IServerToClientEvent,
   IRoom,
   IClientToServerEvent,
-} from '@server/types'
-export * from '@server/types'
+} from '../../../Backend/src/types'
+// Socket event types are shared with Backend/src/types.ts. Type-only, so the
+// bundler never has to load a file from outside the Frontend folder.
+export type {
+  IRoom,
+  IServerRoom,
+  ISocketData,
+  IServerToClientEvent,
+  IClientToServerEvent,
+} from '../../../Backend/src/types'
 
 // TODO Enum keys to reduce socket payload.
 export type ISocketMessageData =

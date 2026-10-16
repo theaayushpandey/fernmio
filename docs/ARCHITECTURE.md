@@ -15,8 +15,8 @@ The application operates fundamentally on a **Two-Role Architecture**: The Clien
 Located in the `/src` directory, this is a React application built with TypeScript, styled with Tailwind CSS and Fluent UI, and bootstrapped via Craco.
 
 **Responsibilities:**
-- **User Interface & Experience:** Provides the landing pages and the primary room interface (`src/app/`). Handles various layouts such as the command bar, side panel (for chat), and media grids.
-- **Local State Management:** Uses Zustand (located in `src/state/`) to manage the application state globally. It maintains states for local media (`local.ts`), remote peers (`remote.ts`), chat messages (`chat.ts`), and landing configurations (`landing.ts`).
+- **User Interface & Experience:** Provides the landing pages and the primary room interface (`Frontend/src/app/`). Handles various layouts such as the command bar, side panel (for chat), and media grids.
+- **Local State Management:** Uses Zustand (located in `Frontend/src/state/`) to manage the application state globally. It maintains states for local media (`local.ts`), remote peers (`remote.ts`), chat messages (`chat.ts`), and landing configurations (`landing.ts`).
 - **WebRTC Peer Management:** Handles the physical WebRTC connections using the `simple-peer` library. It maintains peer objects for every other user in the room, capturing user media (webcam/microphone) and sharing it across peer connections.
 - **Interactive Tools:** Integrates `@excalidraw/excalidraw` to allow shared whiteboarding.
 - **Signaling Client:** Connects to the backend via `socket.io-client` to notify its presence, discover other peers, and exchange WebRTC connection data (SDP offers/answers and ICE candidates).
@@ -41,7 +41,7 @@ Located in the `/server` directory, this is a lightweight Node.js/Express server
 The core functionality of Frenmio relies heavily on the interaction between the React Client, the Node.js Server, and the browser's native WebRTC APIs. Here is the step-by-step flow of how it is fully connected:
 
 ### Phase 1: Initialization & Creating/Joining a Room
-1. **User visits the site:** The frontend (React) mounts and users operate within `src/landing`.
+1. **User visits the site:** The frontend (React) mounts and users operate within `Frontend/src/landing`.
 2. **Socket Handshake:** The frontend initiates a WebSocket connection to the Node.js server. The connection includes a unique `sessionId`.
 3. **Room creation/join request:** 
     - If establishing a new room, the client emits `request:create_room`. The Node.js server uses `nanoid` to create a room ID, saves it in `node-cache`, and responds via `action:room_connection_established`.
@@ -58,8 +58,8 @@ Once a user joins a room, they need to connect directly to all other existing pa
 
 ### Phase 3: In-Room Experience (Client Side Execution)
 Once connected, the backend mostly waits. The dense interactions occur entirely on the client:
-- **Media Streams:** `src/app/media` captures the laptop webcam/microphone strings using `getUserMedia()` and pipes them into the `simple-peer` instances. The incoming remote streams trigger state updates in `src/state/remote.ts` and are injected into HTML `<video>` tags.
-- **Chat:** Chat messages either use socket relay or WebRTC data channels and are synced via `src/state/chat.ts`.
+- **Media Streams:** `Frontend/src/app/media` captures the laptop webcam/microphone strings using `getUserMedia()` and pipes them into the `simple-peer` instances. The incoming remote streams trigger state updates in `Frontend/src/state/remote.ts` and are injected into HTML `<video>` tags.
+- **Chat:** Chat messages either use socket relay or WebRTC data channels and are synced via `Frontend/src/state/chat.ts`.
 - **Whiteboard:** Built over Excalidraw, drawing paths are tracked and broadcasted to connected peers using P2P data channels, immediately rendering the corresponding strokes on all participants' whiteboards.
 
 ### Phase 4: Termination
@@ -82,7 +82,7 @@ To make it work correctly online, the application requires **STUN** and **TURN**
 2. **TURN Servers**: Used as a fallback to relay media data when direct peer-to-peer connection is blocked by firewalls or symmetric NATs.
 
 #### Required Code Changes for Online Usage
-To enable this, you must explicitly provide an `iceServers` configuration array to the WebRTC instances. In the codebase (typically where `simple-peer` is instantiated, e.g., inside `src/state/remote.ts` or similar connection wrappers), you need to inject STUN/TURN credentials.
+To enable this, you must explicitly provide an `iceServers` configuration array to the WebRTC instances. In the codebase (typically where `simple-peer` is instantiated, e.g., inside `Frontend/src/state/remote.ts` or similar connection wrappers), you need to inject STUN/TURN credentials.
 
 Example modification:
 ```typescript
@@ -113,7 +113,7 @@ It is crucial to understand that the Frenmio server is **Event-Driven via WebSoc
 ### HTTP vs WebSockets in Frenmio
 In a typical REST API backend, you would expect endpoints like `app.get('/rooms')` or `app.post('/join')`. However, WebRTC signaling and real-time chat require low latency, bidirectional communication that standard HTTP requests cannot efficiently provide.
 
-If you look at the server code (`server/index.ts`), there is exactly **one HTTP route**:
+If you look at the server code (`Backend/server.ts`, with the socket events in `Backend/src/controllers/room.controller.ts`), there is exactly **one HTTP route**:
 ```typescript
 const httpServer = createServer((_, res) => {
   res.statusCode = 200;
@@ -152,13 +152,13 @@ This lightweight relay mechanism ensures the backend remains extremely memory ef
 The frontend architecture heavily avoids constantly hitting the backend. Once the WebRTC connections are bridged, interactions happen peer-to-peer (P2P), managed efficiently via Zustand.
 
 ### 6.1 State Management (Zustand)
-Frenmio uses **Zustand** (found in `src/state/`) instead of React Context or Redux to maintain a predictable, globally accessible state without severe prop drilling or re-rendering penalties. It is split logically:
+Frenmio uses **Zustand** (found in `Frontend/src/state/`) instead of React Context or Redux to maintain a predictable, globally accessible state without severe prop drilling or re-rendering penalties. It is split logically:
 - **`local.ts`**: Manages the personal user state. This includes checking active devices, caching preferences into browser `localStorage` using Zustand's `persist` middleware, toggling mic/camera logic (`navigator.mediaDevices.getUserMedia`), and handling UI toggles like side panels.
 - **`remote.ts`**: Handles the array of active WebRTC `connections`. Each connection maps a `userId` to a `simple-peer` instance and their incoming media streams.
 - **`chat.ts`**: Maintains the history of text messages.
 
 ### 6.2 Collaborative Whiteboard Integration 
-Frenmio integrates the official `@excalidraw/excalidraw` React component (`src/comps/whiteboard.tsx`) to power instantaneous collaborative sketching.
+Frenmio integrates the official `@excalidraw/excalidraw` React component (`Frontend/src/comps/whiteboard.tsx`) to power instantaneous collaborative sketching.
 
 **How the Whiteboard API Works (Serverless Data):**
 There are **no standard backend HTTP API calls** made to save or fetch whiteboard strokes. Instead, the strokes are transferred directly over WebRTC Data Channels.

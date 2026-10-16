@@ -40,17 +40,17 @@ git clone <repository-url>
 cd frenmio
 ```
 
-### 2. Set up the Server
+### 2. Set up the Backend
 
-Navigate to the server directory and install dependencies:
+Navigate to the Backend directory and install dependencies:
 ```bash
-cd server
+cd Backend
 npm install
 ```
 
-Create a `.env` file in the `server` directory (or remove `.example` from `.env.example`):
+Create a `.env` file in the `Backend` directory (or remove `.example` from `.env.example`):
 ```bash
-# server/.env
+# Backend/.env
 PORT=5005
 ALLOW_ORIGIN=["http://localhost:3000"] # Adjust to match your client URL
 ```
@@ -61,17 +61,17 @@ npm run dev
 ```
 The server will start on port `5005`.
 
-### 3. Set up the Client (Frontend)
+### 3. Set up the Frontend
 
-Open a new terminal, navigate to the root directory, and install dependencies:
+Open a new terminal, navigate to the Frontend directory, and install dependencies:
 ```bash
-cd .. # if you are in server directory
+cd Frontend
 npm install
 ```
 
-Create a `.env` file in the root directory:
+Create a `.env` file in the `Frontend` directory:
 ```bash
-# .env
+# Frontend/.env
 REACT_APP_SAME_ORIGIN_SOCKET_PORT=5005
 # If running on a different host/port, use REACT_APP_SOCKET_URL
 # REACT_APP_SOCKET_URL=http://localhost:5005
@@ -87,20 +87,29 @@ The application will be available at `http://localhost:3000`.
 
 ```
 frenmio/
-├── server/                 # Backend signaling server
-│   ├── index.ts            # Entry point for the server
-│   └── ...
-├── src/                    # Frontend source code
-│   ├── app/                # Main application logic (Room view)
-│   ├── comps/              # Reusable UI components
-│   ├── landing/            # Landing page components
-│   ├── state/              # Global state (Zustand stores)
-│   ├── utils/              # Helper functions and hooks
-│   ├── index.tsx           # Entry point
-│   └── ...
-├── public/                 # Static assets
-└── ...
+├── Backend/                           # Signaling server (Node.js + Socket.io)
+│   ├── server.ts                      # Entry point: HTTP server + socket.io
+│   └── src/
+│       ├── config/socket.ts           # CORS options and the typed socket.io server
+│       ├── middlewares/session.middleware.ts  # Reads sessionId, rejoins the user's room
+│       ├── controllers/room.controller.ts     # Socket events: create, join, leave, message
+│       ├── services/rooms.service.ts  # Rooms kept in memory (12 hour expiry)
+│       └── types.ts                   # Socket event types, shared with the Frontend
+├── Frontend/                          # React app (TypeScript, Craco)
+│   ├── public/                        # Static assets
+│   └── src/
+│       ├── app/                       # Main application logic (Room view)
+│       ├── comps/                     # Reusable UI components
+│       ├── landing/                   # Landing page components
+│       ├── state/                     # Global state (Zustand stores)
+│       ├── hooks/                     # React hooks
+│       ├── utils/                     # Helper functions and theme
+│       └── index.tsx                  # Entry point
+├── docs/                              # Architecture notes
+└── render.yaml                        # Render deploy config for the Backend
 ```
+
+The Frontend imports the socket event types straight from `Backend/src/types.ts` (see `Frontend/src/state/types.ts`). The import is type-only, so it disappears at build time.
 
 ## Contributing
 

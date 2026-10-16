@@ -37,7 +37,7 @@ We use **Render** because it allows the server to stay running (essential for So
 3.  Import the `frenmio` repository.
 4.  In the **Configure Project** screen:
     *   **Framework Preset**: React / Create React App (should be auto-detected).
-    *   **Root Directory**: Leave it as `./` (Project Root).
+    *   **Root Directory**: `Frontend`.
     *   **Environment Variables**:
         *   **Name**: `REACT_APP_SOCKET_URL`
         *   **Value**: Paste your **Backend URL** from Phase 2 (e.g., `https://frenmio-server.onrender.com`).

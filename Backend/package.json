@@ -12,9 +12,9 @@
         "socket.io": "^4.7.1"
     },
     "scripts": {
-        "dev": "nodemon -e ts --exec \"ts-node --project ./tsconfig.json\" ./index.ts",
+        "dev": "nodemon -e ts --exec \"ts-node --project ./tsconfig.json\" ./server.ts",
         "build": "tsc",
-        "start": "node ./lib"
+        "start": "node ./lib/server.js"
     },
     "devDependencies": {
         "@types/node": "^14.18.54",
