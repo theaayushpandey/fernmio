@@ -12,6 +12,12 @@ export function registerRoomHandlers(io: IO) {
   io.on('connection', socket => {
     console.log('socket connected', socket.id)
 
+    // Tell the browser which session the server gave it, so it can reconnect as itself
+    socket.emit('action:session_assigned', {
+      sessionId: socket.data.sessionId,
+      sessionToken: socket.data.sessionToken,
+    })
+
     const transport = socket.conn.transport.name // in most cases, "polling"
     console.log({ transport })
 
@@ -109,10 +115,19 @@ export function registerRoomHandlers(io: IO) {
 
     socket.on('request:send_mesage', async ({ to, roomId, data }, cb) => {
       const userId = socket.data.sessionId
+
+      // Only relay between two people who are both in this room
+      const members = Rooms.getUsers(roomId)
+      if (!members.includes(userId) || !members.includes(to)) {
+        cb?.(err('You can only message people in your room'))
+        return
+      }
+
       const sockets = await io.fetchSockets()
       if (!sockets.find(socket => socket.data.sessionId === to)) {
         kickOut(io, to, roomId)
         cb?.(GENERIC_ERROR)
+        return
       }
       io.to(to).emit('action:message_received', {
         from: userId,

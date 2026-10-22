@@ -13,6 +13,7 @@ export type IServerRoom = {
 
 export interface ISocketData {
     sessionId: string
+    sessionToken: string
 }
 
 type Ev<T extends object = object> = (
@@ -21,6 +22,7 @@ type Ev<T extends object = object> = (
 ) => void
 
 export interface IServerToClientEvent<T = unknown> {
+    'action:session_assigned': Ev<{ sessionId: string; sessionToken: string }>
     'action:room_connection_established': Ev<{ room: IRoom }>
     'action:room_connection_terminated': Ev<{ roomId: string }>
 

@@ -3,14 +3,10 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import { ILocalState, Stream } from './types'
 import { ASPECT_RATIO, VIDEO_RESOLUTION } from './constants'
 import toast, { ToastType } from '../comps/toast'
-import { nanoid } from 'nanoid'
 
-const getSessionId = () => {
-  const id = sessionStorage.getItem('ID') || nanoid()
-  sessionStorage.setItem('ID', id)
-
-  return id
-}
+// The signalling server picks the session id and sends it in 'action:session_assigned'
+// (see state/remote.ts). Until then this is the id from the last connection in this tab.
+const getSessionId = () => sessionStorage.getItem('ID') || ''
 
 export const useLocalState = create<ILocalState>()(
   persist(

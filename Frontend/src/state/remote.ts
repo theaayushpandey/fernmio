@@ -24,14 +24,22 @@ export const createSocket = () => {
   const socket = io(url, {
     withCredentials: !!process.env.REACT_APP_SOCKET_URL,
     auth(cb) {
-      const { sessionId } = useLocalState.getState()
+      // The token the server signed for this tab, so a reconnect keeps the same session.
+      // Without one the server starts a new session.
+      const sessionToken = sessionStorage.getItem('SESSION_TOKEN') || undefined
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       const { id: currentRoomId } = useRemoteState.getState().room || {}
       cb({
-        sessionId,
+        sessionToken,
         currentRoomId,
       })
     },
+  })
+
+  socket.on('action:session_assigned', ({ sessionId, sessionToken }) => {
+    sessionStorage.setItem('ID', sessionId)
+    sessionStorage.setItem('SESSION_TOKEN', sessionToken)
+    useLocalState.setState({ sessionId })
   })
 
   socket.onAny((event, ...args) => {
